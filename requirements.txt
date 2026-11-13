@@ -1,0 +1,4 @@
+# tested with faster-whisper 1.2.1, numpy 2.5.4, pillow 13.0.0 on Python 3.13
+faster-whisper>=1.2
+numpy
+pillow

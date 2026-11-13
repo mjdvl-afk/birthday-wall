@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Names</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  html, body { overflow: auto; background: var(--bg); }
+  .page { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+  .top { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  .top h1 { margin: 0; font-size: 26px; }
+  .top .btn { margin-left: auto; }
+  .hint { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+  .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .card .media { position: relative; aspect-ratio: 1; background: #000; cursor: pointer; }
+  .card video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card .play { position: absolute; inset: auto 8px 8px auto; background: rgba(0,0,0,.6); border-radius: 999px;
+    padding: 3px 10px; font-size: 13px; pointer-events: none; }
+  .card .body { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .card .name-input { font-size: 18px; }
+  .card .meta { color: var(--muted); font-size: 12px; word-break: break-all; }
+  .card .heard { color: #c8c8d8; font-size: 13px; line-height: 1.4; max-height: 5.6em; overflow: hidden; }
+  .card .saved { color: #7cc242; font-size: 12px; min-height: 1em; }
+  .card .saved.err { color: #ff6b8b; }
+  .card.done .media { box-shadow: inset 0 0 0 3px #7cc242; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <h1>Who's who</h1>
+    <span id="count" class="hint" style="margin:0"></span>
+    <a class="btn" href="index.html">← Back to the wall</a>
+  </div>
+  <p class="hint">Click a video to play it with sound. Type a name and press Enter (or click away) to save. Blank names get no name tag.</p>
+  <div class="list" id="list"></div>
+</div>
+<script src="manifest.js"></script>
+<script>
+const clips = window.WALL.clips;
+const list = document.getElementById("list");
+let playingVideo = null;
+
+function count() {
+  const n = clips.filter((c) => c.name).length;
+  document.getElementById("count").textContent = `${n} of ${clips.length} named`;
+}
+
+clips.forEach((c) => {
+  const card = document.createElement("div");
+  card.className = "card" + (c.name ? " done" : "");
+  card.innerHTML = `
+    <div class="media"><video preload="none" playsinline></video><span class="play">▶ ${c.duration.toFixed(0)}s</span></div>
+    <div class="body">
+      <input class="name-input" placeholder="Add a name" autocomplete="off" spellcheck="false">
+      <div class="meta"></div>
+      <div class="heard"></div>
+      <div class="saved"></div>
+    </div>`;
+  const v = card.querySelector("video");
+  v.src = `clips/${c.id}/tile.mp4`;
+  v.poster = `clips/${c.id}/poster.jpg?v=${c.sync}`;
+  card.querySelector(".meta").textContent = c.display || c.file;
+  card.querySelector(".heard").textContent = c.transcript ? `“${c.transcript}”` : "(no speech heard)";
+  const input = card.querySelector("input");
+  input.value = c.name;
+  card.querySelector(".media").addEventListener("click", () => {
+    if (playingVideo && playingVideo !== v) playingVideo.pause();
+    const pad = window.WALL.tilePad || 0;   // skip the wall's frozen lead-in
+    if (v.currentTime < pad) v.currentTime = pad;
+    if (v.paused) { v.play(); playingVideo = v; } else v.pause();
+  });
+  const saved = card.querySelector(".saved");
+  async function save() {
+    const name = input.value.trim();
+    if (name === c.name) return;
+    try {
+      const r = await fetch("api/name", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file: c.file, name }) });
+      if (!r.ok) throw new Error(r.status);
+      c.name = name;
+      saved.className = "saved";
+      saved.textContent = name ? "saved" : "cleared";
+      card.classList.toggle("done", !!name);
+      count();
+    } catch (e) {
+      saved.className = "saved err";
+      saved.textContent = "Not saved. Open with “python3 wall.py serve”.";
+    }
+  }
+  input.addEventListener("change", save);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {   // save and hop to the next card's name
+      input.blur();
+      const inputs = [...document.querySelectorAll(".name-input")];
+      inputs[inputs.indexOf(input) + 1]?.focus();
+    }
+  });
+  list.append(card);
+});
+count();
+</script>
+</body>
+</html>

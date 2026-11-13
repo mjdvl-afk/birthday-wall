@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Happy Birthday</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="bar">
+  <h1 id="title"></h1>
+  <span id="count"></span>
+  <div class="controls">
+    <button id="play" class="primary" title="Space">▶ Play together</button>
+    <button id="stop" title="S">■ Stop</button>
+    <button id="sound" title="M">🔊 Sound on</button>
+    <button id="fs" title="F">⛶ Full screen</button>
+    <a id="names-link" class="btn debug-only" href="names.html">✎ Names</a>
+  </div>
+</header>
+<main id="wall"></main>
+
+<div id="modal" hidden>
+  <div class="sheet">
+    <button class="close" id="close" title="Esc">✕</button>
+    <div class="player"><video id="full" controls playsinline></video></div>
+    <aside>
+      <h2 id="m-title"></h2>
+      <input id="m-name" class="name-input debug-only" placeholder="Add a name" autocomplete="off" spellcheck="false">
+      <p class="file debug-only" id="m-file"></p>
+      <section class="sync debug-only">
+        <h3>"Happy birthday" moment</h3>
+        <p class="when"><b id="m-sync"></b> <span id="m-source"></span></p>
+        <div class="row">
+          <button data-nudge="-0.5">−0.5</button>
+          <button data-nudge="-0.1">−0.1</button>
+          <button data-nudge="0.1">+0.1</button>
+          <button data-nudge="0.5">+0.5</button>
+        </div>
+        <div class="row">
+          <button id="m-here">Set to playhead</button>
+          <button id="m-check">▶ Check it</button>
+        </div>
+        <button id="m-reset" class="link">Reset to detected</button>
+        <p class="status" id="m-status"></p>
+      </section>
+      <section class="transcript" id="m-transcript-box">
+        <h3>Automatic transcript</h3>
+        <blockquote id="m-transcript"></blockquote>
+        <textarea id="m-transcript-edit" class="debug-only" spellcheck="true"></textarea>
+        <div class="row-line debug-only"><span class="status" id="m-transcript-status"></span>
+          <button id="m-transcript-reset" class="link">Reset to automatic</button></div>
+      </section>
+      <div class="nav">
+        <button id="prev" title="←">← Prev</button>
+        <button id="next" title="→">Next →</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="manifest.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
